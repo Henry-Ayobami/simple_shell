@@ -1,75 +1,80 @@
 #include "main.h"
 
-char **_copyenv(void);
-void free_env(void);
-char **_getenv(const char *var);
-
 /**
- * _copyenv - Creates a copy of the environment.
+ * cmp_env_name - compares env variables names
+ * with the name passed.
+ * @nenv: name of the environment variable
+ * @name: name passed
  *
- * Return: If an error occurs - NULL.
- *         O/w - a double pointer to the new copy.
+ * Return: 0 if are not equal. Another value if they are.
  */
-char **_copyenv(void)
+int cmp_env_name(const char *nenv, const char *name)
 {
-	char **new_environ;
-	size_t size;
-	int index;
+	int i;
 
-	for (size = 0; environ[size]; size++)
-		;
-
-	new_environ = malloc(sizeof(char *) * (size + 1));
-	if (!new_environ)
-		return (NULL);
-
-	for (index = 0; environ[index]; index++)
+	for (i = 0; nenv[i] != '='; i++)
 	{
-		new_environ[index] = malloc(_strlen(environ[index]) + 1);
-
-		if (!new_environ[index])
+		if (nenv[i] != name[i])
 		{
-			for (index--; index >= 0; index--)
-				free(new_environ[index]);
-			free(new_environ);
-			return (NULL);
+			return (0);
 		}
-		_strcpy(new_environ[index], environ[index]);
 	}
-	new_environ[index] = NULL;
 
-	return (new_environ);
+	return (i + 1);
 }
 
 /**
- * free_env - Frees the the environment copy.
- */
-void free_env(void)
-{
-	int index;
-
-	for (index = 0; environ[index]; index++)
-		free(environ[index]);
-	free(environ);
-}
-
-/**
- * _getenv - Gets an environmental variable from the PATH.
- * @var: The name of the environmental variable to get.
+ * _getenv - get an environment variable
+ * @name: name of the environment variable
+ * @_environ: environment variable
  *
- * Return: If the environmental variable does not exist - NULL.
- *         Otherwise - a pointer to the environmental variable.
+ * Return: value of the environment variable if is found.
+ * In other case, returns NULL.
  */
-char **_getenv(const char *var)
+char *_getenv(const char *name, char **_environ)
 {
-	int index, len;
+	char *ptr_env;
+	int i, mov;
 
-	len = _strlen(var);
-	for (index = 0; environ[index]; index++)
+	/* Initialize ptr_env value */
+	ptr_env = NULL;
+	mov = 0;
+	/* Compare all environment variables */
+	/* environ is declared in the header file */
+	for (i = 0; _environ[i]; i++)
 	{
-		if (_strncmp(var, environ[index], len) == 0)
-			return (&environ[index]);
+		/* If name and env are equal */
+		mov = cmp_env_name(_environ[i], name);
+		if (mov)
+		{
+			ptr_env = _environ[i];
+			break;
+		}
 	}
 
-	return (NULL);
+	return (ptr_env + mov);
+}
+
+/**
+ * _env - prints the evironment variables
+ *
+ * @datash: data relevant.
+ * Return: 1 on success.
+ */
+int _env(data_shell *datash)
+{
+	int i, j;
+
+	for (i = 0; datash->_environ[i]; i++)
+	{
+
+		for (j = 0; datash->_environ[i][j]; j++)
+			;
+
+		write(STDOUT_FILENO, datash->_environ[i], j);
+		write(STDOUT_FILENO, "\n", 1);
+	}
+	datash->status = 0;
+
+	return (1);
 }
